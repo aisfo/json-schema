@@ -6,7 +6,7 @@
     definitions: {
     	Type1: {
     		name: String,
-    		values: Number[],
+    		values: Number,
     		info: Type2
     	},
     	Type2: {

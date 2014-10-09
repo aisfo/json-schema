@@ -1,88 +1,73 @@
-#!/usr/bin/python
-import sys
 
-schema = ""
-with open('input.jssc', 'r') as f:
-    schema = f.read()
-f.closed
+def parse(schema):
+    schema = ''.join(schema.split()).lower()
+    size = len(schema)
+    assert (size > 0)
+    print schema
+    
+    i = 0
+    parsedSchema, i = parseValue(i, schema)
+    
+    assert(i == size)
+    
+    return parsedSchema
 
-schema = ''.join(schema.split()).lower()
-size = len(schema)
-assert (size > 0)
-print schema
-print size
+    
+def parseValue(i, schema):
+    value = None;
+    size = len(schema)
 
-currObj = None
-parsedObj = None
-currProp = None
-
-dictProp = False
-prop = False
-value = False
-openBrace = True
-closeBrace = False
-openBracket = False
-closeBracket = False
-colon = False
-star = False
-obj = False
-
-alnum = ''
-
-i = 0
-while i < 50:
-    ch = schema[i]
-    i += 1
-
-    if openBrace:
-        if ch == '{' and dict == None:
-            currObj = {}
-            parsedObj = currObj
-            openBrace = False
-            dictProp = True
-            continue
-        elif ch == '{':
-            openBrace = False
-            prop = True
-            continue
-        else:
-            print ch
-            raise Exception('{ expected') 
-    elif dictProp:
-        if ch.isalnum():
-            alnum += ch
-        else:
-            if alnum == 'json' or alnum == 'definitions':
-                currProp = alnum
-                currObj[currProp] = {}
-                dictProp = False
-                colon = True
-                obj = True
+    string = ''
+    
+    while i < size:
+        ch = schema[i]
+        i += 1
+          
+        if ch == '{':
+            value = {}
+            name = ''
+            while 1:
+                name, val, i = parseProperty(i, schema)
+                if name == None:
+                    break
+                value[name] = val
+        elif ch.isalnum():
+            string += ch
+            value = string
+        elif ch == ',':
+            break
+        elif ch == '}':
+            if (value == string):
                 i -= 1
-            else:
-                print ch
-                raise Exception('json or definitions expected')
-            alnum = ''
-        continue
-    elif prop:
+            break
+
+    return value, i
+
+def parseProperty(i, schema):
+    size = len(schema)
+    name = ''
+    value = None
+    while i < size:
+        ch = schema[i]
+        i += 1
+
         if ch.isalnum():
-            alnum += ch
-        elif len(alnum) > 0:
-            currProp = prop
-        else:
-            print ch
-            raise Exception('property name missing')
-    elif colon:
-        if ch == ':':
-            colon = False
-            openBrace = obj
-            obj = False
+            name += ch
             continue
+        elif len(name) and ch == ":":
+            value, i = parseValue(i, schema)
+            break
+        elif ch == '}':
+            break
         else:
-            print ch
-            raise Exception(': expected')
-
-print parsedObj
+            raise Exception('invalid syntax. saw ' + ch + ' at ' + str(i))
             
+    if name == '':
+        name = None
 
-#raw_input("Press any key to exit...")
+    return (name, value, i)
+
+with open('input.jssc', 'r') as f:
+    print parse(f.read())
+f.closed
+    
