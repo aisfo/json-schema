@@ -6,8 +6,8 @@
     definitions: {
     	Type1: {
     		name: String,
-    		values: Number,
-    		info: Type2
+    		values: Number[],
+    		info: Type2*
     	},
     	Type2: {
     		name: String

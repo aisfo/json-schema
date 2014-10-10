@@ -1,50 +1,75 @@
 
-def parse(schema):
-    schema = ''.join(schema.split()).lower()
+def validate(json, schema):
+
+    parsedSchema = parseSchema(schema)
+     
+    return 0
+
+
+def parseSchema(raw_schema):
+
+    schema = ''.join(raw_schema.split()).lower()
     size = len(schema)
+    
     assert (size > 0)
     print schema
     
     i = 0
-    parsedSchema, i = parseValue(i, schema)
-    
+    parsedSchema, i = parseValue(schema, i, size)
     assert(i == size)
-    
+    # check parsedSchema
+      
     return parsedSchema
-
     
-def parseValue(i, schema):
-    value = None;
-    size = len(schema)
-
-    string = ''
+    
+def parseValue(schema, i, size):
+    
+    value = None
+    type = None
+    optional = False
     
     while i < size:
         ch = schema[i]
         i += 1
           
         if ch == '{':
+            type = 'Object'
             value = {}
-            name = ''
             while 1:
-                name, val, i = parseProperty(i, schema)
+                name, val, i = parseProperty(schema, i, size)
                 if name == None:
                     break
                 value[name] = val
-        elif ch.isalnum():
-            string += ch
-            value = string
-        elif ch == ',':
-            break
         elif ch == '}':
-            if (value == string):
+            if (type == 'Type'):
                 i -= 1
             break
+        
+        elif ch.isalnum():
+            if value == None:   
+                type = 'Type'
+                value = ''
+            value += ch
+        
+        elif ch == '[':
+            type = 'Array'
+            continue
+        elif ch == ']':
+            continue
+        
+        elif ch == '*':
+            optional = True
+        
+        elif ch == ',':
+            break
 
-    return value, i
+        else:
+            raise Exception('invalid syntax. saw ' + ch + ' at ' + str(i))
 
-def parseProperty(i, schema):
-    size = len(schema)
+    return ((value, type, optional), i)
+
+def parseProperty(schema, i, size):
+
     name = ''
     value = None
     while i < size:
@@ -55,7 +80,7 @@ def parseProperty(i, schema):
             name += ch
             continue
         elif len(name) and ch == ":":
-            value, i = parseValue(i, schema)
+            value, i = parseValue(schema, i, size)
             break
         elif ch == '}':
             break
@@ -67,7 +92,9 @@ def parseProperty(i, schema):
 
     return (name, value, i)
 
+
+# dev
 with open('input.jssc', 'r') as f:
-    print parse(f.read())
+    print parseSchema(f.read())
 f.closed
     
