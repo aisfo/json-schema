@@ -1,0 +1,25 @@
+{
+    schema: {
+        propA: Type1,
+        propB: String
+    },
+    definitions: {
+        Type1: {
+            name: String,
+            inline: { 
+                prop: Number
+            },
+            inlineOptional: {
+                index: String
+            } *,
+            inlineArray: {
+                smth: Type2
+            }[],
+            values: Number[],
+            info: Type2*
+        },
+        Type2: {
+            name: String
+        }
+    }
+}

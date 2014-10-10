@@ -2,7 +2,8 @@
 class Schema():
     
     def __init__(self, raw_schema):
-        schema = ''.join(raw_schema.split()).lower()
+        
+        schema = ''.join(raw_schema.split())
         size = len(schema)
         
         print schema
@@ -12,18 +13,19 @@ class Schema():
         parsedSchema, i = parseValue(schema, i, size)
         parsedSchema = parsedSchema[0]
         
-        # validate schema
+        # validate schema  
         print parsedSchema
         assert(i == size)
         assert(parsedSchema['schema'] != None)
         
+        #validate customtypes
+        #TODO
+        
         self.schema = parsedSchema
-
 
     def validate(self, json):
     
-        print self.schema
-
+        #TODO
         return 0
     
     
@@ -32,13 +34,15 @@ def parseValue(schema, i, size):
     value = None
     objType = None
     optional = False
+    braces = False
     
     while i < size:
         ch = schema[i]
         i += 1
           
         if ch == '{':
-            objType = 'Object'
+            objType = 'Inline'
+            braces = True
             value = {}
             while 1:
                 name, val, i = parseProperty(schema, i, size)
@@ -46,9 +50,12 @@ def parseValue(schema, i, size):
                     break
                 value[name] = val
         elif ch == '}':
-            if (objType == 'Type'):
+            if (braces and objType == 'Inline'):
+                braces = False
+            else:
                 i -= 1
-            break
+                break
+                
         
         elif ch.isalnum():
             if value == None:   
@@ -58,7 +65,6 @@ def parseValue(schema, i, size):
         
         elif ch == '[':
             objType = 'Array'
-            continue
         elif ch == ']':
             continue
         
@@ -71,7 +77,7 @@ def parseValue(schema, i, size):
         else:
             raise Exception('invalid syntax. saw ' + ch + ' at ' + str(i))
 
-    return ((value, type, optional), i)
+    return ((value, objType, optional), i)
 
 
 def parseProperty(schema, i, size):
@@ -100,7 +106,7 @@ def parseProperty(schema, i, size):
 
 
 # debug
-with open('schema.txt', 'r') as f:
+with open('test/schema_0.txt', 'r') as f:
     s = Schema(f.read())
 f.closed
     
