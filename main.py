@@ -1,15 +1,16 @@
 #!/usr/bin/python
-from parser import validate
+from schema import Schema
 
 
 if __name__ == '__main__':  
     
-    with open('schema', 'r') as f:
-        schema = f.read()
+    schema = None
+    with open('schema.txt', 'r') as f:
+        schema = Schema(f.read())
     f.closed
     
     with open('example.json', 'r') as f:
         json = f.read()
     f.closed
     
-    print validate(json, schema)
+    print schema.validate(json)

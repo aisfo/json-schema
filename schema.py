@@ -1,36 +1,36 @@
 
-def validate(json, schema):
-
-    parsedSchema = parseSchema(schema)
-     
-    return 0
-
-
-def parseSchema(raw_schema):
-
-    schema = ''.join(raw_schema.split()).lower()
-    size = len(schema)
+class Schema():
     
-    print schema
-    assert (size > 0)
+    def __init__(self, raw_schema):
+        schema = ''.join(raw_schema.split()).lower()
+        size = len(schema)
+        
+        print schema
+        assert (size > 0)
+        
+        i = 0
+        parsedSchema, i = parseValue(schema, i, size)
+        parsedSchema = parsedSchema[0]
+        
+        # validate schema
+        print parsedSchema
+        assert(i == size)
+        assert(parsedSchema['schema'] != None)
+        
+        self.schema = parsedSchema
+
+
+    def validate(self, json):
     
-    i = 0
-    parsedSchema, i = parseValue(schema, i, size)
-    parsedSchema = parsedSchema[0]
-    
-    
-    # validate schema
-    print parsedSchema
-    assert(i == size)
-    assert(parsedSchema['schema'] != None)
-      
-    return parsedSchema
+        print self.schema
+
+        return 0
     
     
 def parseValue(schema, i, size):
     
     value = None
-    type = None
+    objType = None
     optional = False
     
     while i < size:
@@ -38,7 +38,7 @@ def parseValue(schema, i, size):
         i += 1
           
         if ch == '{':
-            type = 'Object'
+            objType = 'Object'
             value = {}
             while 1:
                 name, val, i = parseProperty(schema, i, size)
@@ -46,18 +46,18 @@ def parseValue(schema, i, size):
                     break
                 value[name] = val
         elif ch == '}':
-            if (type == 'Type'):
+            if (objType == 'Type'):
                 i -= 1
             break
         
         elif ch.isalnum():
             if value == None:   
-                type = 'Type'
+                objType = 'Type'
                 value = ''
             value += ch
         
         elif ch == '[':
-            type = 'Array'
+            objType = 'Array'
             continue
         elif ch == ']':
             continue
@@ -99,8 +99,8 @@ def parseProperty(schema, i, size):
     return (name, value, i)
 
 
-# dev
-with open('input.jssc', 'r') as f:
-    parseSchema(f.read())
+# debug
+with open('schema.txt', 'r') as f:
+    s = Schema(f.read())
 f.closed
     
