@@ -11,13 +11,18 @@ def parseSchema(raw_schema):
     schema = ''.join(raw_schema.split()).lower()
     size = len(schema)
     
-    assert (size > 0)
     print schema
+    assert (size > 0)
     
     i = 0
     parsedSchema, i = parseValue(schema, i, size)
+    parsedSchema = parsedSchema[0]
+    
+    
+    # validate schema
+    print parsedSchema
     assert(i == size)
-    # check parsedSchema
+    assert(parsedSchema['schema'] != None)
       
     return parsedSchema
     
@@ -68,6 +73,7 @@ def parseValue(schema, i, size):
 
     return ((value, type, optional), i)
 
+
 def parseProperty(schema, i, size):
 
     name = ''
@@ -95,6 +101,6 @@ def parseProperty(schema, i, size):
 
 # dev
 with open('input.jssc', 'r') as f:
-    print parseSchema(f.read())
+    parseSchema(f.read())
 f.closed
     

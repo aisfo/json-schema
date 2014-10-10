@@ -1,5 +1,5 @@
 {
-	json: {
+	schema: {
 		fieldA: Type1,
 		fieldB: String
 	},
