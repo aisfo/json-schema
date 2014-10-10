@@ -1,0 +1,25 @@
+{
+    schema: {
+        propAMust: Type1,
+        propBMust: String
+    },
+    definitions: {
+        Type1: {
+            nameMust: String,
+            inlineMust: { 
+                propOpt: Number*
+            },
+            inlineOpt: {
+                indexMust: String
+            } *,
+            inlineArrayMust: {
+                smthOpt: Type2*
+            }[],
+            valuesMust: Number[],
+            infoOpt: Type2*
+        },
+        Type2: {
+            nameMust: String
+        }
+    }
+}

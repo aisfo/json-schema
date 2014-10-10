@@ -1,12 +1,13 @@
+import json
+from IPython.config.application import catch_config_error
 
 class Schema():
     
-    def __init__(self, raw_schema):
+    def __init__(self, _schema):
         
-        schema = ''.join(raw_schema.split())
+        schema = ''.join(_schema.split())
         size = len(schema)
-        
-        print schema
+
         assert (size > 0)
         
         i = 0
@@ -14,19 +15,72 @@ class Schema():
         parsedSchema = parsedSchema[0]
         
         # validate schema  
-        print parsedSchema
         assert(i == size)
         assert(parsedSchema['schema'] != None)
-        
-        #validate customtypes
-        #TODO
+
+        if (parsedSchema['definitions'] != None):
+            parsedSchema['definitions'] = parsedSchema['definitions'][0]
+            
+        #print parsedSchema 
+        #todo validate customtypes , upper case
         
         self.schema = parsedSchema
 
-    def validate(self, json):
+    def validate(self, _json):
+        
+        valid = True
+        j = json.loads(_json)
+        _schema = self.schema['schema']
+        _definitions = self.schema['definitions']
+        
+        print " schema"
+        valid = validateValue(j, _schema, _definitions, "")
+        
+        return valid
     
-        #TODO
-        return 0
+def validateValue(jValue, eType, _definitions, offset):
+    valid = True
+    
+    offset += " -" 
+    print offset, "value:", jValue
+    
+    _type = eType[0]
+    _defType = eType[1]
+      
+    if _defType == 'Type':
+        if _type == "String":
+            valid = isinstance(jValue, unicode)
+            if not valid:
+                print offset, "wrong type. expected", _type, "(", unicode, "). got:", type(jValue)
+            return valid
+        elif _type == "Number":
+            valid = isinstance(jValue, int)
+            if not valid:
+                print offset, "wrong type. expected", _type, "(", int, "). got:", type(jValue)
+            return valid
+        else:
+            _type = _definitions[_type][0] #cleanup definitions
+    elif _defType == 'Array':
+        return valid
+        
+    for prop in _type:
+        print
+        print offset, prop
+        eType = _type[prop]
+        try:
+            _jValue = jValue[prop]
+            res = validateValue(_jValue, eType, _definitions, offset)
+            if not res:
+                valid = False
+        except KeyError:
+            if not eType[2]:
+                valid = False
+                print offset, "property missing: ", prop
+            else:
+                print offset, "optional property missing: ", prop
+           
+    
+    return valid
     
     
 def parseValue(schema, i, size):
@@ -35,7 +89,6 @@ def parseValue(schema, i, size):
     objType = None
     optional = False
     braces = False
-    
     while i < size:
         ch = schema[i]
         i += 1
@@ -46,7 +99,7 @@ def parseValue(schema, i, size):
             value = {}
             while 1:
                 name, val, i = parseProperty(schema, i, size)
-                if name == None:
+                if name == '':
                     break
                 value[name] = val
         elif ch == '}':
@@ -54,26 +107,20 @@ def parseValue(schema, i, size):
                 braces = False
             else:
                 i -= 1
-                break
-                
-        
+                break      
         elif ch.isalnum():
             if value == None:   
                 objType = 'Type'
                 value = ''
             value += ch
-        
         elif ch == '[':
             objType = 'Array'
         elif ch == ']':
             continue
-        
         elif ch == '*':
             optional = True
-        
         elif ch == ',':
             break
-
         else:
             raise Exception('invalid syntax. saw ' + ch + ' at ' + str(i))
 
@@ -98,15 +145,19 @@ def parseProperty(schema, i, size):
             break
         else:
             raise Exception('invalid syntax. saw ' + ch + ' at ' + str(i))
-            
-    if name == '':
-        name = None
 
     return (name, value, i)
 
 
 # debug
-with open('test/schema_0.txt', 'r') as f:
+s = None
+with open('examples/schema_0.txt', 'r') as f:
     s = Schema(f.read())
 f.closed
+
+with open('examples/data_0.json', 'r') as f:
+    print s.validate(f.read())
+f.closed
+
+
     
